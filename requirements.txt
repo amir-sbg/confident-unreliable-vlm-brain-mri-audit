@@ -1,0 +1,34 @@
+# Core requirements (pip install -r requirements.txt)
+# For CUDA-specific torch, install separately first:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+torch
+torchvision
+vllm>=0.4.0
+transformers>=4.45.0
+accelerate>=0.27.0
+peft
+bitsandbytes
+nibabel>=5.0
+nilearn>=0.10
+pydicom
+scikit-image
+Pillow>=10.0
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+scikit-learn>=1.3
+openpyxl
+matplotlib>=3.7
+seaborn>=0.12
+pyyaml>=6.0
+tqdm
+rich
+wandb>=0.16
+pytest>=7.0
+pytest-cov
+
+# API clients (optional — only needed for Tier C models)
+openai>=1.0
+google-generativeai>=0.5
+anthropic>=0.25

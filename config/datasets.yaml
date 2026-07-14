@@ -1,0 +1,114 @@
+# Dataset configuration: paths, sampling, and ground-truth derivation notes.
+# root paths are relative to the project root data/ directory.
+
+datasets:
+
+  brats:
+    name: BraTS 2024
+    description: >
+      Brain Tumor Segmentation Challenge 2024 training set.
+      Provides T1, T1ce, T2, FLAIR volumes + segmentation masks per subject.
+      Access via Synapse (https://www.synapse.org/brats2024). Start download first.
+    root: data/brats2024
+    fallback_root: data/brats2023      # use 2023 if 2024 unavailable
+    subject_list: null                 # null = auto-discover all subjects
+    n_subjects: 150
+    subsample_seed: 42
+    modalities: [t1n, t1c, t2w, t2f]  # BraTS 2024 suffix conventions
+    seg_suffix: seg
+    expected_label_tumor_present: yes
+    expected_split: [train]
+    planes: [axial, sagittal, coronal]
+    slice_fracs_main: [0.4, 0.5, 0.6]
+    slice_fracs_ablation: [0.2, 0.8]
+    file_pattern: "**/*{modality}.nii.gz"
+    seg_pattern: "**/*seg.nii.gz"
+    label_sources:
+      modality: filename_suffix        # derive from BraTS naming convention
+      plane: by_construction           # set at slice extraction time
+      tumor_present: seg_mask_nonzero  # any non-zero voxel in mask -> yes
+      laterality: seg_mask_centroid    # centroid x vs mid-sagittal plane
+
+  ixi:
+    name: IXI Dataset
+    description: >
+      Information eXtraction from Images: healthy volunteer dataset.
+      T1, T2, PD, MRA sequences; ~600 subjects.
+      Download from: https://brain-development.org/ixi-dataset/
+    root: data/ixi
+    subject_list: null
+    n_subjects: 100
+    subsample_seed: 43
+    modalities: [T1, T2, PD, MRA]
+    expected_label_tumor_present: no
+    planes: [axial, sagittal, coronal]
+    slice_fracs_main: [0.4, 0.5, 0.6]
+    slice_fracs_ablation: [0.2, 0.8]
+    file_pattern: "IXI*-{modality}.nii.gz"
+    label_sources:
+      modality: filename             # IXI filenames encode modality
+      plane: by_construction
+      tumor_present: healthy_dataset # always no
+      laterality: none               # no laterality for healthy
+    metadata_file: data/ixi/IXI.xls  # demographic metadata (age, sex, IQ)
+
+  oasis:
+    name: OASIS-1/2
+    description: >
+      Open Access Series of Imaging Studies.
+      Cross-sectional (OASIS-1) and longitudinal (OASIS-2) T1 scans.
+      Download from: https://www.oasis-brains.org/
+    root: data/oasis
+    subject_list: null
+    n_subjects: 50
+    subsample_seed: 44
+    modalities: [T1]
+    expected_label_tumor_present: no
+    planes: [axial, sagittal, coronal]
+    slice_fracs_main: [0.4, 0.5, 0.6]
+    slice_fracs_ablation: [0.2, 0.8]
+    file_pattern: "**/*_mpr-1_anon.nii.gz"
+    label_sources:
+      modality: known_t1
+      plane: by_construction
+      tumor_present: healthy_dataset
+      laterality: none
+    metadata_file: data/oasis/oasis_cross-sectional.csv
+
+  negative_controls:
+    name: Negative Controls (OOD)
+    description: >
+      Non-brain images and corrupted/synthetic MRI slices for abstention testing.
+      Subcategories: chest_xray (public CXR14 sample), gaussian_noise,
+      salt_pepper_noise, random_uniform, blank.
+    root: data/negative_controls
+    n_subjects: 30                   # 30 items per subcategory
+    subsample_seed: 45
+    subcategories:
+      chest_xray:
+        source: data/chest_xray_sample   # small public chest X-ray sample
+        n: 30
+      gaussian_noise:
+        generate: true
+        n: 20
+        params: {mean: 0.5, std: 0.3}
+      salt_pepper:
+        generate: true
+        n: 20
+        density: 0.3
+      corrupted_mri:
+        generate: true                   # corrupt existing MRI slices heavily
+        n: 30
+        corruption: [heavy_blur, severe_motion, k_space_spike]
+    expected_label_tumor_present: no
+    expected_response: UNSURE
+
+# Global sampling config
+global:
+  total_target_subjects: 330
+  balance_tumor: true          # balance tumor_present=yes/no within brats+ixi
+  balance_modality: true       # roughly balance modalities across datasets
+  output_image_size: [512, 512]
+  intensity_clip_percentile: [1, 99]
+  output_format: PNG
+  provenance_in_filename: true  # encode metadata in PNG filename

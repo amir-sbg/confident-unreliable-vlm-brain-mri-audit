@@ -1,0 +1,236 @@
+# Three phrasings per task: neutral | terse | clinician-framed.
+# All elicit: answer + "Confidence: NN" (0-100) + UNSURE token for invalid images.
+# Format is machine-parseable but not over-constrained so natural hallucinations are observable.
+
+system_prompt: |
+  You are examining a single 2D brain MRI slice. The image has been extracted from a 3D volume
+  and represents one cross-sectional view of the brain.
+  After answering, always state your confidence as an integer from 0 to 100:
+    Confidence: <number>
+  If the image is unsuitable, corrupted, ambiguous, or not a brain MRI, respond with UNSURE
+  instead of guessing.
+
+phrasings:
+
+  neutral:
+    description: Standard factual phrasing; no domain framing.
+    T1-MOD:
+      mc: |
+        Look at this brain MRI image. Which sequence was used to acquire it?
+        {options}
+        Respond with the option label only, then on a new line: Confidence: <0-100>
+      oe: |
+        Look at this brain MRI image. What MRI sequence does it represent?
+        Describe the imaging characteristics that support your answer.
+        End with: Confidence: <0-100>
+
+    T2-PLANE:
+      mc: |
+        What imaging plane is shown in this brain MRI slice?
+        {options}
+        Respond with the option label only, then on a new line: Confidence: <0-100>
+      oe: |
+        Identify the imaging plane of this brain MRI slice.
+        Explain which anatomical structures led to your conclusion.
+        End with: Confidence: <0-100>
+
+    T3-ISBRAIN:
+      mc: |
+        Is this image a brain MRI scan?
+        {options}
+        Respond with the option label only, then on a new line: Confidence: <0-100>
+      oe: |
+        Is this image a brain MRI scan? Explain your reasoning.
+        End with: Confidence: <0-100>
+
+    T4-TUMOR:
+      mc: |
+        Does this brain MRI image show a tumor or gross abnormality?
+        {options}
+        Respond with the option label only, then on a new line: Confidence: <0-100>
+      oe: |
+        Examine this brain MRI image for tumors or abnormalities.
+        Describe your findings in detail.
+        End with: Confidence: <0-100>
+
+    T5-LAT:
+      mc: |
+        In which hemisphere is the abnormality located in this brain MRI?
+        {options}
+        Respond with the option label only, then on a new line: Confidence: <0-100>
+      oe: |
+        Describe the laterality of any abnormality visible in this brain MRI.
+        End with: Confidence: <0-100>
+
+    T6-VQA:
+      mc: |
+        {question}
+        {options}
+        Respond with the option label only, then on a new line: Confidence: <0-100>
+      oe: |
+        {question}
+        Provide a detailed answer based on your observations.
+        End with: Confidence: <0-100>
+
+    T7-ABSTAIN:
+      mc: |
+        Examine this image. Is it a suitable brain MRI for clinical interpretation?
+        {options}
+        If the image is unsuitable or not a brain MRI, respond: UNSURE
+        Otherwise respond with the option label, then: Confidence: <0-100>
+      oe: |
+        Examine this image and describe what you observe.
+        If it is not a brain MRI or is unsuitable for interpretation, respond: UNSURE
+        Otherwise describe your findings and end with: Confidence: <0-100>
+
+  terse:
+    description: Minimal, instruction-only phrasing with no elaboration.
+    T1-MOD:
+      mc: |
+        MRI sequence?
+        {options}
+        Label only. Confidence: <0-100>
+      oe: |
+        Name the MRI sequence. Key features only.
+        Confidence: <0-100>
+
+    T2-PLANE:
+      mc: |
+        Imaging plane?
+        {options}
+        Label only. Confidence: <0-100>
+      oe: |
+        Imaging plane? State and justify briefly.
+        Confidence: <0-100>
+
+    T3-ISBRAIN:
+      mc: |
+        Brain MRI?
+        {options}
+        Label only. Confidence: <0-100>
+      oe: |
+        Brain MRI? Yes/No + one-sentence reason.
+        Confidence: <0-100>
+
+    T4-TUMOR:
+      mc: |
+        Tumor/abnormality present?
+        {options}
+        Label only. Confidence: <0-100>
+      oe: |
+        Tumor or abnormality? State findings briefly.
+        Confidence: <0-100>
+
+    T5-LAT:
+      mc: |
+        Abnormality laterality?
+        {options}
+        Label only. Confidence: <0-100>
+      oe: |
+        Laterality of abnormality? Brief.
+        Confidence: <0-100>
+
+    T6-VQA:
+      mc: |
+        {question}
+        {options}
+        Label only. Confidence: <0-100>
+      oe: |
+        {question}
+        Brief answer. Confidence: <0-100>
+
+    T7-ABSTAIN:
+      mc: |
+        Valid brain MRI?
+        {options}
+        Label or UNSURE. Confidence: <0-100>
+      oe: |
+        Describe image. If invalid/non-brain: UNSURE
+        Confidence: <0-100>
+
+  clinician:
+    description: Clinical framing; addresses model as a radiologist/clinician.
+    T1-MOD:
+      mc: |
+        As a neuroradiologist reviewing this brain MRI, which pulse sequence was used
+        to acquire this image based on tissue contrast characteristics?
+        {options}
+        State your answer (option label) and provide your confidence level (0-100).
+        Confidence: <0-100>
+      oe: |
+        From a neuroradiology perspective, identify the MRI pulse sequence represented
+        in this image. Discuss the tissue contrast, signal intensities of gray matter,
+        white matter, and CSF that inform your determination.
+        Confidence: <0-100>
+
+    T2-PLANE:
+      mc: |
+        In clinical neuroimaging, which standard anatomical plane does this MRI
+        slice represent?
+        {options}
+        State your answer (option label) and confidence (0-100).
+        Confidence: <0-100>
+      oe: |
+        As a radiologist, identify the acquisition plane of this neuroimaging study.
+        Reference the visible anatomical structures (corpus callosum, cerebellum,
+        ventricles, etc.) that support your determination.
+        Confidence: <0-100>
+
+    T3-ISBRAIN:
+      mc: |
+        Clinically assess: is this image from a brain MRI examination?
+        {options}
+        State your answer (option label) and confidence (0-100).
+        Confidence: <0-100>
+      oe: |
+        As a clinician, determine whether this image represents a brain MRI examination.
+        Describe the features that support or refute this.
+        Confidence: <0-100>
+
+    T4-TUMOR:
+      mc: |
+        On radiological review of this brain MRI, is there evidence of an intracranial
+        neoplasm or gross parenchymal abnormality?
+        {options}
+        State your answer (option label) and confidence (0-100).
+        Confidence: <0-100>
+      oe: |
+        Perform a structured radiological interpretation of this brain MRI.
+        Report any mass lesions, signal abnormalities, or gross pathology.
+        Include signal characteristics, location, margins, and mass effect if applicable.
+        Confidence: <0-100>
+
+    T5-LAT:
+      mc: |
+        On this brain MRI, identify the hemispheric laterality of the primary lesion.
+        {options}
+        State your answer (option label) and confidence (0-100).
+        Confidence: <0-100>
+      oe: |
+        As a radiologist, characterize the laterality of the pathological finding
+        in this brain MRI. Reference midline structures and hemisphere landmarks.
+        Confidence: <0-100>
+
+    T6-VQA:
+      mc: |
+        Clinical neuroimaging question: {question}
+        {options}
+        State your answer (option label) and confidence (0-100).
+        Confidence: <0-100>
+      oe: |
+        Clinical neuroimaging question: {question}
+        Provide a structured clinical response referencing imaging findings.
+        Confidence: <0-100>
+
+    T7-ABSTAIN:
+      mc: |
+        Before beginning radiological interpretation, assess the technical adequacy
+        of this image. Is it a diagnostically acceptable brain MRI?
+        {options}
+        If the image is non-diagnostic or not a brain MRI, state: UNSURE
+        Otherwise respond with the option label and: Confidence: <0-100>
+      oe: |
+        As a radiologist, assess this image for technical adequacy and modality.
+        If it does not represent a brain MRI or is of non-diagnostic quality,
+        state UNSURE and explain. Otherwise, provide your clinical observations.
+        Confidence: <0-100>

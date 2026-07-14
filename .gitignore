@@ -1,0 +1,56 @@
+# Large datasets and derived medical-image assets
+/data/
+
+# Model caches, downloaded checkpoints, and local inference state
+/cache/
+/raw_responses/
+/smoke_out/
+/wandb/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# Generated tables, plots, logs, and local run reports
+/results/
+/results_preview/
+/figures/
+/logs/
+/slurm/logs/
+*.log
+*.out
+*.err
+
+# Private collaboration and local paper artifacts
+/CC Work/
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Notebooks and local environments
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/

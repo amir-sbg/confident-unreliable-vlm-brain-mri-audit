@@ -1,0 +1,58 @@
+name: vlmaudit
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      # Deep learning — CUDA build must match cluster driver
+      # For CUDA 12.1:  pip install torch --index-url https://download.pytorch.org/whl/cu121
+      - torch
+      - torchvision
+
+      # VLM inference
+      # Verify vLLM supports your chosen model architectures before downloading weights.
+      # If a model is unsupported, set backend: hf in models.yaml.
+      - vllm>=0.4.0
+
+      # HuggingFace ecosystem
+      - transformers>=4.45.0   # build from source if a model needs unreleased features
+      - accelerate>=0.27.0
+      - peft
+      - bitsandbytes
+
+      # Neuro-imaging
+      - nibabel>=5.0
+      - nilearn>=0.10
+      - pydicom
+      - scikit-image
+
+      # Image processing
+      - Pillow>=10.0
+      - numpy>=1.24
+      - scipy>=1.10
+
+      # Data & ML
+      - pandas>=2.0
+      - scikit-learn>=1.3
+      - openpyxl          # for IXI .xls metadata
+
+      # Visualisation
+      - matplotlib>=3.7
+      - seaborn>=0.12
+
+      # Configuration & utilities
+      - pyyaml>=6.0
+      - tqdm
+      - rich               # pretty CLI output
+      - wandb>=0.16        # real-time experiment logging
+
+      # Testing
+      - pytest>=7.0
+      - pytest-cov
+
+      # API clients (optional; only needed for Tier C models)
+      - openai>=1.0
+      - google-generativeai>=0.5
+      - anthropic>=0.25

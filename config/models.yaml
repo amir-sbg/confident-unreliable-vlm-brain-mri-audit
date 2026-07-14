@@ -1,0 +1,203 @@
+# Model registry — single source of truth for all model IDs, backends, and memory config.
+# Before downloading, verify each id on HuggingFace and confirm the checkpoint is multimodal.
+
+models:
+
+  # ── Tier A: General-purpose open VLMs (primary, GPU) ──────────────────────
+
+  - id: Qwen/Qwen2.5-VL-7B-Instruct
+    label: Qwen2.5-VL-7B
+    tier: A
+    backend: vllm
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.85
+    optional: false
+    family: qwen
+    params_b: 7
+
+  - id: Qwen/Qwen2.5-VL-72B-Instruct
+    label: Qwen2.5-VL-72B
+    tier: A
+    backend: vllm
+    dtype: fp8
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.90
+    optional: true          # requires multi-GPU or fp8 quantization
+    family: qwen
+    params_b: 72
+
+  - id: Qwen/Qwen2.5-VL-3B-Instruct
+    label: Qwen2.5-VL-3B
+    tier: A
+    backend: vllm
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.70
+    optional: false
+    family: qwen
+    params_b: 3
+
+  - id: OpenGVLab/InternVL2_5-8B
+    label: InternVL2.5-8B
+    tier: A
+    backend: vllm
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.85
+    optional: false
+    family: internvl
+    params_b: 8
+
+  - id: OpenGVLab/InternVL2_5-2B
+    label: InternVL2.5-2B
+    tier: A
+    backend: vllm
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.60
+    optional: false
+    family: internvl
+    params_b: 2
+
+  - id: OpenGVLab/InternVL2_5-4B        # was InternVL2_5-14B (does NOT exist; sizes: 1/2/4/8/26/38/78B)
+    label: InternVL2.5-4B
+    tier: A
+    backend: vllm
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.70
+    optional: true
+    family: internvl
+    params_b: 4
+
+  - id: meta-llama/Llama-3.2-11B-Vision-Instruct
+    label: LLaMA-3.2-11B-V
+    tier: A
+    backend: vllm
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.85
+    optional: false
+    family: llama
+    params_b: 11
+
+  # Base model of MedGemma-4B: google/medgemma-4b-it is a medical fine-tune of google/gemma-3-4b-it.
+  # Running both isolates the *causal effect of medical fine-tuning* (same arch, size, pretraining),
+  # turning "medical model is no better" into a controlled base-vs-medical ablation.
+  # optional:true keeps it OUT of the default array sweep so --slurm-array-index ordering is unchanged;
+  # the dedicated launcher (slurm/run_gemma3.slurm) opts in with --include-optional --model ...
+  - id: google/gemma-3-4b-it
+    label: Gemma-3-4B
+    tier: A
+    backend: hf              # same Gemma-3 arch as MedGemma; hf path validated (bf16, image-in-content fix)
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.75
+    optional: true
+    family: gemma
+    params_b: 4
+
+  # Google's newest flagship (Gemma 4, released 2026-05-23): the "gemma4_unified" any-to-any model
+  # (text+image+audio, encoder-free). FLAGSHIP/RECENCY audit — NOT the MedGemma base control (that is
+  # gemma-3-4b-it). Use the INSTRUCT (-it) variant for our MC/confidence prompts. Ungated on HF
+  # (gated:false) so no license acceptance needed; ~24 GB bf16 fits one DGX GPU. transformers 5.12.1
+  # registers model_type gemma4_unified, so the hf path loads it. optional:true keeps it out of the
+  # default array sweep; the dedicated launcher opts in with --include-optional --model ...
+  - id: google/gemma-4-12B-it
+    label: Gemma-4-12B
+    tier: A
+    backend: hf
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.85
+    optional: true
+    family: gemma4
+    params_b: 12
+
+  # ── Tier B: Medical-specialist open VLMs ──────────────────────────────────
+
+  - id: google/medgemma-4b-it
+    label: MedGemma-4B
+    tier: B
+    backend: hf              # vLLM Gemma support may need custom patch
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 8192
+    gpu_memory_utilization: 0.75
+    optional: false
+    family: medgemma
+    params_b: 4
+
+  - id: microsoft/llava-med-v1.5-mistral-7b
+    label: LLaVA-Med-7B
+    tier: B
+    backend: hf
+    dtype: bf16
+    max_tokens: 512
+    max_model_len: 4096
+    gpu_memory_utilization: 0.80
+    optional: true
+    family: llava_med
+    params_b: 7
+
+  # ── Tier C: Frontier API models (optional, skip if keys absent) ───────────
+
+  - id: gpt-4o
+    label: GPT-4o
+    tier: C
+    backend: api
+    provider: openai
+    max_tokens: 512
+    optional: true
+    family: gpt4o
+    params_b: null
+
+  - id: gemini-1.5-pro-latest
+    label: Gemini-1.5-Pro
+    tier: C
+    backend: api
+    provider: google
+    max_tokens: 512
+    optional: true
+    family: gemini
+    params_b: null
+
+  - id: claude-opus-4-8        # latest / most-capable Opus (4-series)
+    label: Claude-Opus-4.8
+    tier: C
+    backend: api
+    provider: anthropic
+    max_tokens: 512
+    optional: true
+    family: claude
+    params_b: null
+
+  # ── Scale ablation (A6): within-family size sweep ─────────────────────────
+  # Qwen2.5-VL has NO 2B checkpoint (sizes: 3B/7B/32B/72B) — the scale sweep uses
+  # the 3B + 7B Qwen entries above and the 2B/4B/8B InternVL entries.
+
+  # ── Reasoning ablation (A4): Instruct vs Thinking ─────────────────────────
+
+  - id: Qwen/QwQ-32B
+    label: QwQ-32B-Thinking
+    tier: A
+    backend: vllm
+    dtype: fp8
+    max_tokens: 2048         # longer for CoT
+    max_model_len: 16384
+    gpu_memory_utilization: 0.90
+    optional: true
+    family: qwen
+    params_b: 32
+    ablation_only: true      # only used in A4
+    reasoning_model: true

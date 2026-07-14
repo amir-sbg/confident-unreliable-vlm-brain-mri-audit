@@ -1,0 +1,140 @@
+# Task taxonomy: closed answer spaces, MC/OE templates, confidence elicitation.
+# MC option order is randomized per item at render time; the chosen order is logged.
+
+tasks:
+
+  T1-MOD:
+    name: Modality Identification
+    description: Identify the MRI acquisition sequence shown in the image.
+    answer_space: [T1, T1ce, T2, FLAIR, PD, MRA, DWI]   # T1ce = post-contrast T1 (BraTS t1c channel)
+    answer_space_aliases:
+      T1: [t1, t1w, t1-weighted, t1weighted]
+      T1ce: [t1ce, t1c, t1-ce, t1 post-contrast, post-contrast, contrast-enhanced t1, t1 with contrast, t1 gad, gadolinium-enhanced t1]
+      T2: [t2, t2w, t2-weighted, t2weighted]
+      FLAIR: [flair, fluid attenuated, fluid-attenuated]
+      PD: [pd, proton density, proton-density]
+      MRA: [mra, magnetic resonance angiography, angiography]
+      DWI: [dwi, diffusion, diffusion weighted, diffusion-weighted]
+    mc_template: |
+      Which MRI sequence is shown in this image?
+      Options: {options}
+      Answer with exactly one option letter/label.
+    oe_template: |
+      What MRI sequence does this brain image represent?
+      Name the sequence and briefly explain the key imaging features that led to your answer.
+    confidence_elicitation: true
+    applies_to_datasets: [brats, ixi, oasis]
+    metric_primary: accuracy
+
+  T2-PLANE:
+    name: Plane Identification
+    description: Identify the imaging plane (orientation) of the slice.
+    answer_space: [axial, sagittal, coronal]
+    answer_space_aliases:
+      axial: [axial, transverse, transaxial, horizontal]
+      sagittal: [sagittal, lateral, side]
+      coronal: [coronal, frontal]
+    mc_template: |
+      What imaging plane does this MRI slice represent?
+      Options: {options}
+      Answer with exactly one option letter/label.
+    oe_template: |
+      In what orientation/plane was this MRI slice acquired?
+      Identify the plane and describe the anatomical landmarks that indicate the orientation.
+    confidence_elicitation: true
+    applies_to_datasets: [brats, ixi, oasis]
+    metric_primary: accuracy
+
+  T3-ISBRAIN:
+    name: Brain MRI Verification
+    description: Determine whether the image is a brain MRI scan.
+    answer_space: ["yes", "no"]      # quoted: bare yes/no parse as booleans in YAML
+    answer_space_aliases:
+      "yes": ["yes", correct, affirmative, it is, this is]
+      "no": ["no", not, negative, it is not, this is not]
+    mc_template: |
+      Is this image a brain MRI scan?
+      Options: {options}
+      Answer with exactly one option letter/label.
+    oe_template: |
+      Is this a brain MRI image? Explain your reasoning based on the visual content.
+    confidence_elicitation: true
+    applies_to_datasets: [brats, ixi, oasis, negative_controls]
+    metric_primary: accuracy
+
+  T4-TUMOR:
+    name: Tumor/Abnormality Detection
+    description: Detect presence of tumor or gross abnormality.
+    answer_space: ["yes", "no"]      # quoted: bare yes/no parse as booleans in YAML
+    answer_space_aliases:
+      "yes": ["yes", present, detected, abnormal, there is, i see]
+      "no": ["no", absent, not detected, normal, none, no tumor, no abnormality]
+    mc_template: |
+      Does this brain MRI image show evidence of a tumor or gross abnormality?
+      Options: {options}
+      Answer with exactly one option letter/label.
+    oe_template: |
+      Examine this brain MRI image for tumors or gross abnormalities.
+      State whether any are present and describe your findings in detail.
+    confidence_elicitation: true
+    applies_to_datasets: [brats, ixi]
+    metric_primary: accuracy
+    hallucination_task: true
+
+  T5-LAT:
+    name: Laterality of Abnormality
+    description: Identify which hemisphere the abnormality is located in.
+    answer_space: [left, right, bilateral, none]
+    answer_space_aliases:
+      left: [left, left hemisphere, left side, left-sided]
+      right: [right, right hemisphere, right side, right-sided]
+      bilateral: [bilateral, both, both sides, both hemispheres]
+      none: [none, no abnormality, not applicable, n/a, absent]
+    mc_template: |
+      On which side of the brain is the abnormality located in this MRI image?
+      Options: {options}
+      Answer with exactly one option letter/label.
+    oe_template: |
+      If there is an abnormality in this brain MRI, describe its laterality.
+      Specify left hemisphere, right hemisphere, bilateral, or none if no abnormality is present.
+    confidence_elicitation: true
+    applies_to_datasets: [brats]
+    metric_primary: accuracy
+    hallucination_task: true
+
+  T6-VQA:
+    name: Clinical VQA (Mixed)
+    description: Mixed multiple-choice clinical questions composed from image metadata.
+    answer_space: []  # dynamic per question
+    mc_template: |
+      {question}
+      Options: {options}
+      Answer with exactly one option letter/label.
+    oe_template: |
+      {question}
+      Provide a detailed clinical answer based on what you observe in the image.
+    confidence_elicitation: true
+    applies_to_datasets: [brats, ixi, oasis]
+    metric_primary: accuracy
+    vqa_questions:
+      - "What is the relative size of the ventricles in this image?"
+      - "Does this image show signs of mass effect or midline shift?"
+      - "What is the approximate patient age group suggested by this brain MRI?"
+      - "Are the sulci and gyri clearly visible and appropriately sized?"
+
+  T7-ABSTAIN:
+    name: Abstention / OOD Detection
+    description: >
+      Show negative-control images (non-brain, corrupted); model should abstain or flag as unsuitable.
+    answer_space: [UNSURE]
+    mc_template: |
+      Examine this image and describe any findings you observe.
+      If the image is unsuitable, unclear, or not a brain MRI, respond with UNSURE.
+    oe_template: |
+      Please examine this medical image and describe what you see.
+      If the image quality is too poor to interpret, or if it is not a brain MRI,
+      state UNSURE and explain why.
+    confidence_elicitation: true
+    applies_to_datasets: [negative_controls]
+    metric_primary: abstention_appropriateness
+    expected_response: UNSURE
