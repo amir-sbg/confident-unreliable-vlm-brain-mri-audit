@@ -1,5 +1,13 @@
 # Confident but Unreliable: VLM Brain MRI Safety Audit
 
+<p align="center">
+  <img src="https://trendscenter.org/wp-content/uploads/2021/02/TReNDS_logo.png" alt="TReNDS Center" height="42">
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://commkit.gsu.edu/files/2019/06/PrimaryLogo3color-768x594.jpg" alt="Georgia State University" height="42">
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://securityseminar.cc.gatech.edu/images/gt_extended.png" alt="Georgia Tech" height="42">
+</p>
+
 Research code for **"Confident but Unreliable: A Behavioral Safety Audit of Vision-Language Models on Brain MRI"**, accepted to [ACM AI 2026](https://aisummit.acm.org/) after submission in **2026.05** and acceptance in **2026.07**.
 
 This project was developed in the TReNDS Center research environment as part of a Georgia Tech and Georgia State University collaboration. It audits whether vision-language models can recognize basic brain-MRI properties while also communicating uncertainty safely. The main point is deliberately behavioral: a model can answer almost every question, sound confident, and still be poorly calibrated when it is wrong.
@@ -201,9 +209,3 @@ sbatch slurm/run_all.slurm
 ├── environment.yml
 └── requirements.txt
 ```
-
-## Suggested Repository Metadata
-
-**Name:** `confident-unreliable-vlm-brain-mri-audit`
-
-**About:** Accepted ACM AI 2026 safety-audit framework for vision-language models on brain MRI, measuring calibration, confident errors, hallucination, abstention, and slice-level accuracy.
