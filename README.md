@@ -1,12 +1,14 @@
 # Confident but Unreliable: VLM Brain MRI Safety Audit
 
-Research code for **"Confident but Unreliable: A Behavioral Safety Audit of Vision-Language Models on Brain MRI"**, accepted to [ACM AI Summit 2026](https://aisummit.acm.org/) after submission in **2026.05** and acceptance in **2026.07**.
+Research code for **"Confident but Unreliable: A Behavioral Safety Audit of Vision-Language Models on Brain MRI"**, accepted to [ACM AI 2026](https://aisummit.acm.org/) after submission in **2026.05** and acceptance in **2026.07**.
 
 This project was developed in the TReNDS Center research environment as part of a Georgia Tech and Georgia State University collaboration. It audits whether vision-language models can recognize basic brain-MRI properties while also communicating uncertainty safely. The main point is deliberately behavioral: a model can answer almost every question, sound confident, and still be poorly calibrated when it is wrong.
 
 This is an inference-only evaluation framework. It does not train or fine-tune model weights, and it is not a clinical diagnostic system.
 
-![Accuracy versus confidence on wrong answers](docs/accuracy-vs-error-confidence.png)
+<p align="center">
+  <img src="docs/accuracy-vs-error-confidence.png" alt="Accuracy versus confidence on wrong answers" width="620">
+</p>
 
 ## Paper Snapshot
 
@@ -47,8 +49,6 @@ The pipeline turns public neuroimaging volumes into slice-level VLM audit tasks:
 6. Grade responses against slice-level labels.
 7. Aggregate calibration, confident-error, hallucination, and abstention metrics.
 8. Generate paper-style reliability figures.
-
-![VLM Brain MRI audit pipeline](docs/pipeline-overview.png)
 
 ## Evaluation Scope
 
@@ -188,8 +188,7 @@ sbatch slurm/run_all.slurm
 │   ├── prompts.yaml
 │   └── tasks.yaml
 ├── docs/
-│   ├── accuracy-vs-error-confidence.png
-│   └── pipeline-overview.png
+│   └── accuracy-vs-error-confidence.png
 ├── slurm/
 ├── src/
 │   ├── analysis/
