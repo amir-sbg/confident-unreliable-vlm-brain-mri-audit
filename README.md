@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://trendscenter.org/wp-content/uploads/2021/02/TReNDS_logo.png" alt="TReNDS Center" height="42">
   &nbsp;&nbsp;&nbsp;
-  <img src="https://commkit.gsu.edu/files/2019/06/PrimaryLogo3color-768x594.jpg" alt="Georgia State University" height="42">
+  <img src="https://commkit.gsu.edu/files/2019/07/logoLindEnd3RBG-e1563220590855.jpg" alt="Georgia State University" height="42">
   &nbsp;&nbsp;&nbsp;
   <img src="https://securityseminar.cc.gatech.edu/images/gt_extended.png" alt="Georgia Tech" height="42">
 </p>
