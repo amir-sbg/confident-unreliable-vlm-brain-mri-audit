@@ -1,91 +1,103 @@
-# VLM Brain-MRI Audit
+# Confident but Unreliable: VLM Brain MRI Safety Audit
 
-**Suggested repository name:** `vlm-brain-mri-safety-audit`
+Research code for **"Confident but Unreliable: A Behavioral Safety Audit of Vision-Language Models on Brain MRI"**, accepted to [ACM AI Summit 2026](https://aisummit.acm.org/) after submission in **2026.05** and acceptance in **2026.07**.
 
-**About:** An inference-only framework for auditing vision-language models on slice-level brain-MRI tasks, measuring accuracy, calibration, hallucination, confidence, and abstention.
+This project was developed in the TReNDS Center research environment as part of a Georgia Tech and Georgia State University collaboration. It audits whether vision-language models can recognize basic brain-MRI properties while also communicating uncertainty safely. The main point is deliberately behavioral: a model can answer almost every question, sound confident, and still be poorly calibrated when it is wrong.
 
-![VLM Brain-MRI Audit pipeline](docs/pipeline-overview.png)
+This is an inference-only evaluation framework. It does not train or fine-tune model weights, and it is not a clinical diagnostic system.
 
-## Overview
+![Accuracy versus confidence on wrong answers](docs/accuracy-vs-error-confidence.png)
 
-This project evaluates how well modern vision-language models interpret controlled brain-MRI views and how safely they communicate uncertainty. It is an **AI/ML evaluation pipeline**, not a training or fine-tuning project: model weights remain unchanged while the system measures task accuracy, confidence calibration, hallucinated findings, and appropriate abstention on out-of-distribution inputs.
+## Paper Snapshot
 
-The pipeline turns public neuroimaging volumes into reproducible 2D slices, derives labels from dataset metadata and segmentation masks, renders a fixed prompt matrix, runs local or API-based VLMs, parses structured signals from their responses, and produces statistical summaries and figures. The design keeps image provenance, prompt construction, model configuration, and grading decisions inspectable.
+The accepted paper evaluates six instruction-tuned VLMs on **4,102 images**: 4,032 axial, coronal, and sagittal MRI slices from 250 subjects, plus 70 non-brain and noise controls. Labels are derived automatically from public metadata, slice geometry, and released expert segmentation masks, avoiding new manual annotation.
 
-The project is intended for research on slice-level visual recognition and model safety behavior. It is not a clinical diagnostic system and should not be used to make decisions about patient care.
+The audit reports accuracy together with safety-relevant behavior:
 
-## Evaluation scope
+- coverage and answered-item accuracy
+- balanced accuracy
+- expected calibration error and Brier score
+- mean stated confidence on incorrect answers
+- confidently-wrong rate
+- open-ended hallucination rate
+- abstention on non-brain controls
 
-The task registry in `config/tasks.yaml` defines seven evaluation tracks:
+The headline result is that accuracy and confidence reliability move separately. Gemma-4-12B is the most accurate model in the pilot study, but it also gives the highest mean confidence on its wrong answers. Qwen2.5-VL-7B is less accurate overall but substantially less overconfident when wrong.
+
+| Model | Coverage | Accuracy | ECE | Brier | Confidence on wrong answers | Confidently-wrong rate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| InternVL2.5-8B | 1.000 | 0.567 | 0.361 | 0.371 | 0.917 | 0.426 |
+| Qwen2.5-VL-3B | 1.000 | 0.514 | 0.361 | 0.355 | 0.844 | 0.357 |
+| Qwen2.5-VL-7B | 1.000 | 0.563 | 0.272 | 0.326 | 0.819 | 0.360 |
+| Gemma-3-4B | 1.000 | 0.531 | 0.404 | 0.405 | 0.922 | 0.462 |
+| Gemma-4-12B | 0.996 | 0.670 | 0.307 | 0.311 | 0.968 | 0.330 |
+| MedGemma-4B | 1.000 | 0.571 | 0.381 | 0.389 | 0.949 | 0.428 |
+
+Lower is better for ECE, Brier, confidence-on-wrong, and confidently-wrong rate.
+
+## What the Code Does
+
+The pipeline turns public neuroimaging volumes into slice-level VLM audit tasks:
+
+1. Extract controlled 2D slices from NIfTI volumes.
+2. Build a manifest with labels from acquisition metadata, extraction geometry, and segmentation masks.
+3. Render deterministic multiple-choice and open-ended prompts.
+4. Run local or API-based VLM inference with resumable JSONL outputs.
+5. Parse answers, confidence values, findings, refusals, and abstentions.
+6. Grade responses against slice-level labels.
+7. Aggregate calibration, confident-error, hallucination, and abstention metrics.
+8. Generate paper-style reliability figures.
+
+![VLM Brain MRI audit pipeline](docs/pipeline-overview.png)
+
+## Evaluation Scope
+
+The paper focuses on five automatically gradable brain-MRI tasks:
 
 | Task | Question |
 | --- | --- |
 | `T1-MOD` | Which MRI modality or sequence is shown? |
 | `T2-PLANE` | Is the slice axial, sagittal, or coronal? |
 | `T3-ISBRAIN` | Is the image a brain MRI? |
-| `T4-TUMOR` | Does the image show a tumor or gross abnormality? |
-| `T5-LAT` | Where is an abnormality located: left, right, bilateral, or none? |
-| `T6-VQA` | How does the model answer mixed image-grounded questions? |
-| `T7-ABSTAIN` | Does the model recognize unsuitable or out-of-distribution inputs? |
+| `T4-TUMOR` | Does the image show a visible tumor or abnormality? |
+| `T5-LAT` | Where is the abnormality located: left, right, bilateral, or none? |
 
-Each applicable task can be evaluated with multiple-choice and open-ended prompts. Prompt phrasing is configurable (`neutral`, `terse`, or `clinician`), multiple-choice options are deterministically shuffled and logged, and every response includes an elicited confidence value when the model provides one.
+The repository also contains configurable VQA and abstention tracks for broader experiments. Multiple-choice options are shuffled deterministically and logged, and every prompt asks the model to state a confidence from 0 to 100 when possible.
 
-## Data construction
+## Data and Labeling
 
-The data pipeline supports:
+The code supports:
 
-- **BraTS 2024** volumes and segmentation masks for modality, tumor-presence, and laterality labels.
-- **IXI** healthy-volunteer scans for non-tumor controls and metadata-based attributes.
-- **OASIS** T1 scans as an additional configured healthy dataset.
-- Generated or non-brain negative controls for abstention and out-of-distribution testing, including noise, blank, corrupted-MRI, and optional chest-X-ray examples.
+- **BraTS 2024** post-treatment glioma volumes and segmentation masks
+- **IXI** healthy-volunteer scans
+- **OASIS** T1 scans as an optional configured healthy dataset
+- generated and non-brain negative controls for out-of-distribution testing
 
-`src/data/slice_extract.py` canonicalizes NIfTI orientation to RAS, applies a robust 1–99% intensity window, converts slices to 8-bit PNG, extracts axial/sagittal/coronal views at controlled depth fractions, and records provenance. `src/data/build_manifest.py` converts that provenance into `data/exam_set.csv`, deriving labels from filenames, masks, and metadata instead of requiring manual annotation.
+Slice labels are derived without new annotation:
 
-The current workspace’s saved summary contains 1,350 BraTS slices from 150 subjects, 2,682 IXI slices from 100 subjects, and 70 negative controls. OASIS remains supported by configuration but only appears in a run when its source data is available.
+- sequence from acquisition metadata
+- plane from extraction geometry
+- brain/non-brain status from source
+- tumor presence from the in-slice segmentation mask
+- laterality from the lesion centroid relative to the mid-sagittal line
 
-## Pipeline
+The paper uses a visibility threshold of at least 25 lesion voxels for tumor-positive slice labels. This matters because many slices from a tumor-bearing subject contain no visible tumor.
 
-```mermaid
-flowchart LR
-    A["NIfTI volumes<br/>BraTS · IXI · OASIS"] --> B["Slice extraction<br/>RAS · 1–99% clip · 512 × 512"]
-    B --> C["Provenance + manifest<br/>data/exam_set.csv"]
-    C --> D["Prompt renderer<br/>7 tasks · MC/OE · 3 phrasings"]
-    D --> E["VLM inference<br/>vLLM · Hugging Face · API"]
-    E --> F["Raw JSONL<br/>resumable per model"]
-    F --> G["Parse + grade<br/>answer · confidence · findings"]
-    G --> H["Metrics + figures<br/>accuracy · ECE · hallucination · abstention"]
-```
+## Model Backends
 
-## Model backends
+Model definitions live in `config/models.yaml`. The inference layer supports:
 
-The registry in `config/models.yaml` is the single source of truth for model IDs, backends, precision, token limits, tiers, and optional runs.
+- local vLLM runs for supported open VLMs
+- Hugging Face Transformers fallback
+- optional API-backed runners
+- resumable output streams keyed by model, image, and prompt
+- SLURM launchers for cluster sweeps
 
-- `src/inference/vllm_runner.py` runs supported open VLMs locally with batched, greedy decoding.
-- `src/inference/hf_runner.py` provides a Transformers fallback for models that are not available through the vLLM path.
-- `src/inference/api_runner.py` supports optional OpenAI, Google, and Anthropic providers with retries, caching, and refusal handling.
-- `src/inference/run_inference.py` makes runs resumable by skipping completed `(model, image_id, prompt_id)` keys and can shard work across GPUs.
+The audited panel includes InternVL2.5-8B, Qwen2.5-VL-3B/7B, Gemma-3-4B, Gemma-4-12B, and MedGemma-4B.
 
-The model configuration includes general-purpose families such as Qwen, InternVL, Llama, and Gemma, medical models such as MedGemma and LLaVA-Med, and optional frontier API entries.
+## Quick Start
 
-## Scoring and metrics
-
-Responses are parsed by `src/scoring/parse.py` and graded by `src/scoring/grade.py`. The scoring layer separates an unparseable response or abstention from an ordinary wrong answer, which makes parser reliability and coverage visible instead of silently folding them into accuracy.
-
-The analysis code reports:
-
-- answered-item accuracy and all-prompt accuracy
-- balanced accuracy and macro-F1
-- expected calibration error (ECE) and Brier score
-- mean confidence on wrong answers and confidently-wrong rate
-- open-ended hallucination rate
-- appropriate abstention on negative controls
-- bootstrap confidence intervals using 1,000 resamples
-
-`src/analysis/aggregate.py` writes CSV summaries, while `src/analysis/make_figures.py` creates reliability plots, task comparisons, failure galleries, and ablation figures.
-
-## Quick start
-
-The project targets Python 3.11 with PyTorch, CUDA-compatible inference libraries, the Hugging Face ecosystem, neuroimaging packages, and the analysis/test dependencies listed in `environment.yml` and `requirements.txt`.
+The project targets Python 3.11 with PyTorch, CUDA-compatible inference libraries, Hugging Face tooling, neuroimaging packages, and the analysis dependencies listed in `environment.yml` and `requirements.txt`.
 
 ```bash
 git clone https://github.com/amir-sbg/vlm-brain-mri-audit.git
@@ -98,7 +110,7 @@ export PYTHONPATH="$PWD"
 python -m pytest tests/test_parse.py -q
 ```
 
-Before downloading data, verify which configured datasets are available:
+Check configured datasets:
 
 ```bash
 python -m src.data.download \
@@ -106,7 +118,7 @@ python -m src.data.download \
   --dataset brats ixi oasis
 ```
 
-Build slices and a manifest after the source volumes are present:
+Build slices and the exam manifest after source data is available:
 
 ```bash
 python -m src.data.slice_extract \
@@ -121,7 +133,7 @@ python -m src.data.build_manifest \
   --output data/exam_set.csv
 ```
 
-Run a small local inference job by selecting a configured model:
+Run inference for one configured model:
 
 ```bash
 python -m src.inference.run_inference \
@@ -151,44 +163,48 @@ python -m src.analysis.make_figures \
   --manifest data/exam_set.csv
 ```
 
-For the cluster workflow, review the site-specific paths, account, partition, node, and conda location in `slurm/run_all.slurm` before submitting:
+For the cluster workflow, review account, partition, node, paths, and conda location before submitting:
 
 ```bash
 sbatch slurm/run_all.slurm
 ```
 
-The launcher is idempotent at the stage level and inference outputs are resumable. Gated Hugging Face models require an accepted model agreement and `HF_TOKEN`; API-backed models require the corresponding provider key. Keep credentials in the environment, never in configuration files or Git.
+## Engineering Notes
 
-## Reproducibility and engineering choices
+- Dataset sampling and negative-control generation are seeded.
+- Prompt templates, answer spaces, model settings, and dataset paths are configuration-driven.
+- Multiple-choice option order is deterministic and recorded for grading.
+- Each model writes independent JSONL outputs, so interrupted workers can resume without duplicating completed items.
+- Parser tests cover answer extraction, confidence parsing, and refusal handling.
+- Raw data, model caches, responses, generated figures, logs, W&B runs, and internal collaboration notes are excluded from Git.
 
-- Dataset subsampling and negative-control generation use explicit seeds in `config/datasets.yaml`.
-- Model IDs, prompt templates, task answer spaces, and dataset paths are configuration-driven.
-- Multiple-choice option order is randomized deterministically and recorded for grading.
-- Each model writes an independent JSONL stream, allowing failed workers to resume without duplicating completed items.
-- Parser tests run before the full SLURM sweep.
-- Raw data, model caches, responses, generated results, figures, logs, W&B runs, and internal collaboration notes are excluded by `.gitignore`; they can be regenerated or kept on the research server without bloating the source repository.
-
-## Project structure
+## Repository Structure
 
 ```text
 .
 ├── config/
-│   ├── datasets.yaml       # datasets, sampling, label sources
-│   ├── models.yaml         # model registry and runtime settings
-│   ├── prompts.yaml        # system prompt and phrasing templates
-│   └── tasks.yaml          # task taxonomy and answer spaces
+│   ├── datasets.yaml
+│   ├── models.yaml
+│   ├── prompts.yaml
+│   └── tasks.yaml
 ├── docs/
+│   ├── accuracy-vs-error-confidence.png
 │   └── pipeline-overview.png
-├── slurm/                  # cluster launchers
+├── slurm/
 ├── src/
-│   ├── analysis/            # aggregation and figures
-│   ├── data/                # download, extraction, manifests
-│   ├── inference/           # vLLM, Transformers, and API runners
-│   ├── prompts/             # prompt rendering
-│   ├── scoring/             # parsing, grading, metrics
-│   └── utils/               # configuration, logging, seeds, W&B
+│   ├── analysis/
+│   ├── data/
+│   ├── inference/
+│   ├── prompts/
+│   ├── scoring/
+│   └── utils/
 ├── tests/
 ├── environment.yml
-├── requirements.txt
-└── README.md
+└── requirements.txt
 ```
+
+## Suggested Repository Metadata
+
+**Name:** `confident-unreliable-vlm-brain-mri-audit`
+
+**About:** Accepted ACM AI 2026 safety-audit framework for vision-language models on brain MRI, measuring calibration, confident errors, hallucination, abstention, and slice-level accuracy.
