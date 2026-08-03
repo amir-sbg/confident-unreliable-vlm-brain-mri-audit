@@ -1,4 +1,4 @@
-# Confident but Unreliable: VLM Brain MRI Safety Audit
+# Confident but Unreliable: A Behavioral Safety Audit of Vision–Language Models on Brain MRI
 
 <p align="center">
   <img src="https://trendscenter.org/wp-content/uploads/2021/02/TReNDS_logo.png" alt="TReNDS Center" height="42">
