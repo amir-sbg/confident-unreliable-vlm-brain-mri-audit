@@ -1,11 +1,11 @@
 # Confident but Unreliable: A Behavioral Safety Audit of Vision–Language Models on Brain MRI
 
 <p align="center">
-  <img src="https://trendscenter.org/wp-content/uploads/2021/02/TReNDS_logo.png" alt="TReNDS Center" height="42">
+  <img src="docs/logos/trends.png" alt="TReNDS Center" height="42">
   &nbsp;&nbsp;&nbsp;
-  <img src="https://commkit.gsu.edu/files/2019/07/logoLindEnd3RBG-e1563220590855.jpg" alt="Georgia State University" height="42">
+  <img src="docs/logos/georgia-state.jpg" alt="Georgia State University" height="42">
   &nbsp;&nbsp;&nbsp;
-  <img src="https://securityseminar.cc.gatech.edu/images/gt_extended.png" alt="Georgia Tech" height="42">
+  <img src="docs/logos/georgia-tech.png" alt="Georgia Tech" height="42">
 </p>
 
 Research code for **"Confident but Unreliable: A Behavioral Safety Audit of Vision-Language Models on Brain MRI"**, accepted to [ACM AI 2026](https://aisummit.acm.org/).
