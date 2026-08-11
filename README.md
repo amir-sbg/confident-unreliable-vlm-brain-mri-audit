@@ -19,7 +19,7 @@ Official research code for the paper:
 
 > **Confident but Unreliable: A Behavioral Safety Audit of Vision-Language Models on Brain MRI**<br>
 > Amir Sabbaghziarani, Mohammadsajad Abavisani, Sergey Plis<br>
-> Accepted to **ACM AI Leadership Summit 2026**. arXiv: [2608.02790](https://arxiv.org/abs/2608.02790)
+> Accepted to **ACM AI 2026**. arXiv: [2608.02790](https://arxiv.org/abs/2608.02790)
 
 This repository contains the research code for an inference-only safety audit of vision-language models (VLMs) on brain MRI. The benchmark asks whether models can produce correct answers, calibrated confidence, and appropriate abstentions on controlled MRI-derived images.
 
